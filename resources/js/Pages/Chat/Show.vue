@@ -50,6 +50,25 @@ export default {
         'users',
         'messages'
     ],
+
+    created() {
+        // console.log(Echo.channel('store-message').listen('.store-message', (res) => {
+        //     console.log(res)
+        // }))
+        window.Echo.channel(`store_message.${this.chat.id}`)
+            .listen('.store_message', (res) => {
+                console.log(res)
+                this.messages.push(res.message)
+
+                if (this.$page.url === `/chats/${this.chat.id}`) {
+                    axios.patch('/message_statuses', {
+                        user_id: this.$page.props.auth.user.id,
+                        message_id: res.message.id
+                    })
+                }
+            })
+    },
+
     layout: Main,
     data() {
         return {
@@ -75,6 +94,8 @@ export default {
             }).then(res => {
                 this.messages.push(res.data)
             })
+
+            this.body = ''
 
         }
     }

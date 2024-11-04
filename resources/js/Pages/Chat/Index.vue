@@ -3,10 +3,28 @@
     <div class="w-1/2 p-4 mr-4 bg-white border border-gray-200">
         <h3 class="text-gray-700 text-lg mb-4">Chats</h3>
         <div v-if="chats">
-            <div v-for="chat in chats" class="flex items-center mb-4 pb-4 border-b border-gray-300">
+            <div v-for="chat in chats" class="mb-4 pb-4 border-b border-gray-300">
                 <Link :href="route('chats.show', chat.id)">
-                    <p class="mr-2">{{ chat.id }}</p>
-                    <p class="mr-2">{{ chat.title ?? 'Your chat' }}</p>
+                    <div>
+                        <div>
+                            <div class="flex">
+                                <p class="mr-2">{{ chat.id }}</p>
+                                <p class="mr-2">{{ chat.title ?? 'Your chat' }}</p>
+                            </div>
+                            <div :class="[`p-4 flex justify-between items-center`,
+                                chat.unreadable_count !== 0 ? 'bg-sky-50' : ''
+                            ]">
+                                <div class="text-sm">
+                                    <p class="text-gray-600">{{ chat.lastMessage.user_name }}</p>
+                                    <p class="mb-2 text-gray-500">{{ chat.lastMessage.body }}</p>
+                                    <p class="italic text-gray-400">{{ chat.lastMessage.time }}</p>
+                                </div>
+                                <div v-if="chat.unreadable_count !== 0">
+                                    <p class="text-xs rounded-full bg-sky-500 text-white px-2 py-1">{{ chat.unreadable_count }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </Link>
             </div>
         </div>
@@ -58,6 +76,18 @@ export default {
             userIds: [],
             title: null
         }
+    },
+
+    created() {
+        window.Echo.channel(`users.${this.$page.props.auth.user.id}`)
+            .listen('.store_message_status', res => {
+                this.chats.filter(chat => {
+                    if (chat.id === res.chat_id) {
+                        chat.unreadable_count = res.count
+                        chat.lastMessage = res.message
+                    }
+                })
+            })
     },
 
     methods: {

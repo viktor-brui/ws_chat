@@ -28,10 +28,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/chats/{chat}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chats.show');
 
     Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::patch('/message_statuses', [\App\Http\Controllers\MessageStatusController::class, 'update'])->name('message_statuses.update');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+//Route::get('/test-ws', function () {
+//    event(new \App\Events\WsEvent());
+//});
 
 require __DIR__.'/auth.php';

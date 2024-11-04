@@ -19,4 +19,18 @@ class Chat extends Model
     public function messages() {
         return $this->hasMany(Message::class, 'chat_id', 'id');
     }
+
+    public function unreadableMessageStatuses()
+    {
+        return $this->hasMany(MessageStatus::class, 'chat_id', 'id')
+            ->where('user_id', auth()->id())
+            ->where('is_read', false);
+    }
+
+    public function lastMessage() {
+        return $this->hasOne(Message::class, 'chat_id', 'id')
+            ->latestOfMany()
+            ->with('user');
+    }
+
 }
