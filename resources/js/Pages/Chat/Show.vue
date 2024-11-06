@@ -3,7 +3,10 @@
     <div class="w-3/4 p-4 mr-4 bg-white border border-gray-200">
         <h3 class="text-gray-700 text-lg mb-4">{{ chat.title ?? 'Your chat' }}</h3>
         <div class="mb-4" v-if="messages">
-            <div v-for="message in messages" :class="message.is_owner ? 'text-right' : ''">
+            <div v-if="!isLastPage" class="text-center mb-2">
+                <a @click.prevent="getMessages" href="#" class="inline-block bg-sky-400 text-white text-xs px-3 py-2 rounded-lg">Load more</a>
+            </div>
+            <div v-for="message in messages.slice().reverse()" :class="message.is_owner ? 'text-right' : ''">
                 <div :class="['p-4 mb-4 border  inline-block',
                 message.is_owner ? 'bg-green-50 border-green-100' : 'bg-sky-50 border-sky-100'
                 ]">
@@ -48,7 +51,8 @@ export default {
     props: [
         'chat',
         'users',
-        'messages'
+        'messages',
+        'isLastPage'
     ],
 
     created() {
@@ -58,7 +62,7 @@ export default {
         window.Echo.channel(`store_message.${this.chat.id}`)
             .listen('.store_message', (res) => {
                 console.log(res)
-                this.messages.push(res.message)
+                this.messages.unshift(res.message)
 
                 if (this.$page.url === `/chats/${this.chat.id}`) {
                     axios.patch('/message_statuses', {
@@ -73,6 +77,7 @@ export default {
     data() {
         return {
             body: '',
+            page: 1
         }
     },
     computed: {
@@ -92,11 +97,19 @@ export default {
                 body: this.body,
                 user_ids: this.userIds
             }).then(res => {
-                this.messages.push(res.data)
+                this.messages.unshift(res.data)
             })
 
             this.body = ''
 
+        },
+
+        getMessages() {
+            axios.get(`/chats/${this.chat.id}?page=${++this.page}`)
+                .then(res => {
+                    this.messages.push(...res.data.messages)
+                    this.$page.props.isLastPage = res.data.is_last_page
+                })
         }
     }
 
