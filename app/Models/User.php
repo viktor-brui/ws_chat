@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,5 +49,9 @@ class User extends Authenticatable
 
     public function chats() {
         return $this->belongsToMany(Chat::class, 'chat_user', 'user_id', 'chat_id');
+    }
+
+    public function scopeAnotherUsers(Builder $builder) {
+        return $builder->where('id', '!=', auth()->id())->get();
     }
 }
